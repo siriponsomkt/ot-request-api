@@ -189,6 +189,52 @@ app.delete("/department/:dep_id", jsonParser, function (req, res) {
   });
 });
 
+//ADD ACTIVITY
+app.post("/activity", jsonParser, function (req, res) {
+  db.execute(
+    "INSERT INTO activity (act_name, act_place,act_date, act_time, act_image, act_desc) VALUES (?, ?, ?, ?, ?, ?)",
+    [
+      req.body.act_name,
+      req.body.act_place,
+      req.body.act_date,
+      req.body.act_time,
+      req.body.act_place,
+      req.body.act_desc,
+  
+    ],
+    function (err, results, fields) {
+      if (err) {
+        res.json({ status: "error", message: err });
+        return;
+      }
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+//ADD EMPLOYEES
+// app.post("/employees", jsonParser, function (req, res) {
+//   db.execute(
+//     "INSERT INTO employees (act_name, act_place,act_date, act_time, act_image, act_desc) VALUES (?, ?, ?, ?, ?, ?)",
+//     [
+//       req.body.act_name,
+//       req.body.act_place,
+//       req.body.act_date,
+//       req.body.act_time,
+//       req.body.act_place,
+//       req.body.act_desc,
+  
+//     ],
+//     function (err, results, fields) {
+//       if (err) {
+//         res.json({ status: "error", message: err });
+//         return;
+//       }
+//       res.json({ status: "ok" });
+//     }
+//   );
+// });
+
 app.listen(3333, () => {
   console.log("running server port 3333");
 });
