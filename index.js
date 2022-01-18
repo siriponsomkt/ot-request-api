@@ -43,6 +43,18 @@ const db = mysql.createConnection({
   database: "ot_request",
 });
 
+//--------------------------EMPLOYEE API------------------------------
+//GET EMPLOYEES DATA FORM DB
+app.get("/employee", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM employees", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
 //Add Employees (Register)
 app.post("/register", jsonParser, function (req, res) {
   bcrypt.hash(req.body.emp_password, saltRounds, function (err, hash) {
@@ -122,6 +134,60 @@ app.post("/login", jsonParser, function (req, res, next) {
 //     }
 //   );
 // });
+
+//--------------------------DEPARTMENT API------------------------------
+
+//GET DEPARTMENT DATA FORM DB
+app.get("/department", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM department", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+//ADD DEPARTMENT
+app.post("/department", jsonParser, function (req, res) {
+  db.execute(
+    "INSERT INTO department (dep_name) VALUES (?)",
+    [req.body.dep_name],
+    function (err, results, fields) {
+      if (err) {
+        res.json({ status: "error", message: err });
+        return;
+      }
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+//UPDATE DEPARTMENT DATA FORM DB
+app.put("/department", jsonParser, function (req, res) {
+  db.execute(
+    "UPDATE department SET dep_name = ? WHERE dep_id = ?",
+    [req.body.dep_name, req.body.dep_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
+});
+
+//DELETE DEPARTMENT DATA FORM DB
+app.delete("/department/:dep_id", jsonParser, function (req, res) {
+  db.execute("DELETE FROM department WHERE dep_id = ?", [req.params.dep_id], (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
 
 app.listen(3333, () => {
   console.log("running server port 3333");
