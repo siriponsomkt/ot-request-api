@@ -213,27 +213,71 @@ app.post("/activity", jsonParser, function (req, res) {
 });
 
 //ADD EMPLOYEES
-// app.post("/employees", jsonParser, function (req, res) {
-//   db.execute(
-//     "INSERT INTO employees (act_name, act_place,act_date, act_time, act_image, act_desc) VALUES (?, ?, ?, ?, ?, ?)",
-//     [
-//       req.body.act_name,
-//       req.body.act_place,
-//       req.body.act_date,
-//       req.body.act_time,
-//       req.body.act_place,
-//       req.body.act_desc,
+app.post("/employees", jsonParser, function (req, res) {
+  db.execute(
+    "INSERT INTO employees (emp_firstname, emp_surname, emp_tel, emp_email, emp_username, emp_password, dep_id, role_id, emp_card_id, emp_dob, emp_images, position_id, emp_ot, create_at, update_at, record_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [
+      req.body.emp_firstname,
+      req.body.emp_surname,
+      req.body.emp_tel,
+      req.body.emp_email,
+      req.body.emp_username,
+      req.body.emp_password,
+      req.body.dep_id ,
+      req.body.role_id ,
+      req.body.emp_card_id ,
+      req.body.emp_dob ,
+      req.body.emp_images ,
+      req.body.position_id ,
+      req.body.emp_ot ,
+      req.body.create_at ,
+      req.body.update_at ,
+      req.body.record_status ,
+
   
-//     ],
-//     function (err, results, fields) {
-//       if (err) {
-//         res.json({ status: "error", message: err });
-//         return;
-//       }
-//       res.json({ status: "ok" });
-//     }
-//   );
-// });
+    ],
+    function (err, results, fields) {
+      if (err) {
+        res.json({ status: "error", message: err });
+        return;
+      }
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+//ADD OT_ASSIGNMENT
+app.post("/otassignment", jsonParser, function (req, res) {
+  db.execute(
+    "INSERT INTO ot_assignment (asm_id, ot_name, ot_rate, dep_id, ot_desc, ot_starttime, ot_finishtime, summary, ot_apply, ot_request, ot_stump, ot_status, create_at, update_at, record_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    [
+      req.body.asm_id,
+      req.body.ot_name,
+      req.body.ot_rate,
+      req.body.dep_id,
+      req.body.ot_desc,
+      req.body.ot_starttime,
+      req.body.ot_finishtime ,
+      req.body.summary ,
+      req.body.ot_apply ,
+      req.body.ot_request ,
+      req.body.ot_stump ,
+      req.body.ot_status ,
+      req.body.create_at ,
+      req.body.update_at ,
+      req.body.record_status ,
+
+  
+    ],
+    function (err, results, fields) {
+      if (err) {
+        res.json({ status: "error", message: err });
+        return;
+      }
+      res.json({ status: "ok" });
+    }
+  );
+});
 
 app.listen(3333, () => {
   console.log("running server port 3333");
