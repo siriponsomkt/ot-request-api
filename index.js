@@ -260,6 +260,17 @@ app.get("/otassignment", jsonParser, function (req, res) {
   });
 });
 
+//GET OT BY ID
+app.get("/otassignment/:ot_id", jsonParser, function (req, res) {
+  db.execute("SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.dep_id = department.dep_id WHERE ot_assignment.ot_id = ?", [req.params.ot_id], (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
 //ADD OT_ASSIGNMENT
 app.post("/otassignment", jsonParser, function (req, res) {
   db.execute(
@@ -273,9 +284,6 @@ app.post("/otassignment", jsonParser, function (req, res) {
       req.body.ot_finishtime ,
       req.body.ot_apply ,
 
-
-
-  
     ],
     function (err, results, fields) {
       if (err) {
@@ -287,6 +295,19 @@ app.post("/otassignment", jsonParser, function (req, res) {
   );
 });
 
+
+//SELECT DATA IN OT_ASSIGNMENT
+app.get("/otassignview", jsonParser, function (req, res) {
+  db.execute(
+  "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.ot_id = department.dep_id"
+  , (err, result) => {
+  if (err) {
+    console.log(err);
+  } else {
+    res.send(result);
+  }
+});
+});
 
 //GET ROLE DATA FORM DB
 app.get("/role", jsonParser, function (req, res) {
