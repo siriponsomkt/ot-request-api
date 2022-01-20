@@ -152,7 +152,10 @@ app.get("/department", jsonParser, function (req, res) {
 app.post("/department", jsonParser, function (req, res) {
   db.execute(
     "INSERT INTO department (dep_name) VALUES (?)",
-    [req.body.dep_name],
+    [
+      req.body.dep_name,
+
+    ],
     function (err, results, fields) {
       if (err) {
         res.json({ status: "error", message: err });
@@ -162,6 +165,7 @@ app.post("/department", jsonParser, function (req, res) {
     }
   );
 });
+
 
 //UPDATE DEPARTMENT DATA FORM DB
 app.put("/department", jsonParser, function (req, res) {
@@ -214,25 +218,23 @@ app.post("/activity", jsonParser, function (req, res) {
 
 //ADD EMPLOYEES
 app.post("/employees", jsonParser, function (req, res) {
+  bcrypt.hash(req.body.emp_password, saltRounds, function (err, hash){
   db.execute(
-    "INSERT INTO employees (emp_firstname, emp_surname, emp_tel, emp_email, emp_username, emp_password, dep_id, role_id, emp_card_id, emp_dob, emp_images, position_id, emp_ot, create_at, update_at, record_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO employees (emp_firstname, emp_surname, emp_address, emp_tel, emp_email, emp_username, emp_password, dep_id, role_id, emp_card_id, emp_dob, emp_images, position_id, create_at, update_at, record_status, emp_gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW(), NOW(), '1', ?)",
     [
       req.body.emp_firstname,
       req.body.emp_surname,
+      req.body.emp_address,
       req.body.emp_tel,
       req.body.emp_email,
       req.body.emp_username,
-      req.body.emp_password,
+      hash,
       req.body.dep_id ,
       req.body.role_id ,
       req.body.emp_card_id ,
       req.body.emp_dob ,
-      req.body.emp_images ,
       req.body.position_id ,
-      req.body.emp_ot ,
-      req.body.create_at ,
-      req.body.update_at ,
-      req.body.record_status ,
+      req.body.emp_gender ,
 
   
     ],
@@ -245,27 +247,33 @@ app.post("/employees", jsonParser, function (req, res) {
     }
   );
 });
+});
+
+//GET OT_ASSIGNMENT DATA FORM DB
+app.get("/otassignment", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM ot_assignment", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
 
 //ADD OT_ASSIGNMENT
 app.post("/otassignment", jsonParser, function (req, res) {
   db.execute(
-    "INSERT INTO ot_assignment (asm_id, ot_name, ot_rate, dep_id, ot_desc, ot_starttime, ot_finishtime, summary, ot_apply, ot_request, ot_stump, ot_status, create_at, update_at, record_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    "INSERT INTO ot_assignment ( ot_name, ot_rate, dep_id, ot_desc, ot_starttime, ot_finishtime, ot_apply, ot_request, ot_stump, ot_status, create_at, update_at, record_status) VALUES ( ?, ?, ?, ?, ?, ?, ?, 0, 0, 1,  NOW(), NOW(), 1)",
     [
-      req.body.asm_id,
       req.body.ot_name,
       req.body.ot_rate,
       req.body.dep_id,
       req.body.ot_desc,
       req.body.ot_starttime,
       req.body.ot_finishtime ,
-      req.body.summary ,
       req.body.ot_apply ,
-      req.body.ot_request ,
-      req.body.ot_stump ,
-      req.body.ot_status ,
-      req.body.create_at ,
-      req.body.update_at ,
-      req.body.record_status ,
+
+
 
   
     ],
@@ -278,6 +286,67 @@ app.post("/otassignment", jsonParser, function (req, res) {
     }
   );
 });
+
+
+//GET ROLE DATA FORM DB
+app.get("/role", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM role", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+//ADD ROLE
+app.post("/role", jsonParser, function (req, res) {
+  db.execute(
+    "INSERT INTO role (role_name) VALUES (?)",
+    [
+      req.body.role_name,
+
+    ],
+    function (err, results, fields) {
+      if (err) {
+        res.json({ status: "error", message: err });
+        return;
+      }
+      res.json({ status: "ok" });
+    }
+  );
+});
+
+//GET POSITION DATA FORM DB
+app.get("/positions", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM positions", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+//ADD POSITION
+app.post("/positions", jsonParser, function (req, res) {
+  db.execute(
+    "INSERT INTO positions (position_name, dep_id, create_at, update_at ) VALUES (?, ?, NOW(), NOW())",
+    [
+      req.body.position_name,
+      req.body.dep_id, 
+
+    ],
+    function (err, results, fields) {
+      if (err) {
+        res.json({ status: "error", message: err });
+        return;
+      }
+      res.json({ status: "ok" });
+    }
+  );
+});
+
 
 app.listen(3333, () => {
   console.log("running server port 3333");
