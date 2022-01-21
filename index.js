@@ -5,7 +5,7 @@ var cors = require("cors");
 var bodyParser = require("body-parser");
 var jsonParser = bodyParser.json();
 const cookieParser = require("cookie-parser");
-//const session = require("express-session");
+const session = require("express-session");
 
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -24,17 +24,17 @@ app.use(
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// app.use(
-//   session({
-//     key: "userId",
-//     secret: "subscribe",
-//     resave: false,
-//     saveUninitialized: false,
-//     cookie: {
-//       expires: 60 * 60 * 24,
-//     },
-//   })
-// );
+app.use(
+  session({
+    key: "userId",
+    secret: "subscribe",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      expires: 60 * 60 * 24,
+    },
+  })
+);
 
 const db = mysql.createConnection({
   user: "root",
@@ -47,6 +47,16 @@ const db = mysql.createConnection({
 //GET EMPLOYEES DATA FORM DB
 app.get("/employee", jsonParser, function (req, res) {
   db.execute("SELECT * FROM employees", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
+app.get("/employee/:emp_id", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM employees WHERE emp_id = ?",[req.params.emp_id], (err, result) => {
     if (err) {
       console.log(err);
     } else {
@@ -83,31 +93,49 @@ app.post("/register", jsonParser, function (req, res) {
 });
 
 //LOGIN
+app.get("/login", jsonParser,(req, res) => {
+  if(req.session.user) {
+    res.send({ loggedIn: true, user: req.session.user });
+  } else {
+    res.send({ loggedIn: false });
+  }
+});
+
 app.post("/login", jsonParser, function (req, res, next) {
   db.execute(
     "SELECT * FROM employees WHERE emp_username= ?",
     [req.body.emp_username],
-    (err, users, fields) => {
+    (err, users) => {
       if (err) {
         res.json({ status: "error", message: err });
         return;
       }
-      if (users.length == 0) {
-        res.json({ status: "error", message: "no user found" });
-        return;
-      }
-      bcrypt.compare(
-        req.body.emp_password,
-        users[0].emp_password,
-        function (err, result) {
-          if (result) {
-            res.json({ status: "ok", message: "login success" });
-            return;
-          } else {
-            res.json({ status: "error", message: "login failed" });
+      // if (users.length == 0) {
+      //   res.json({ status: "error", message: "no user found" });
+      //   return;
+      // }
+      if (users.length > 0) {
+        bcrypt.compare(
+          req.body.emp_password,
+          users[0].emp_password,
+          function (err, result) {
+            // if (result) {
+            //   res.json({ status: "ok", message: "login success" });
+            //   return;
+            // } else {
+            //   res.json({ status: "error", message: "login failed" });
+            // }
+            if (result) {
+              req.session.user = users;
+              res.send(req.session.user);
+            } else {
+              res.send({ message: "Username or Password Incorrect!" });
+            }
           }
-        }
-      );
+        );
+      } else {
+        res.send({ message: "User Not Found!" });
+      }
     }
   );
 });
@@ -152,10 +180,7 @@ app.get("/department", jsonParser, function (req, res) {
 app.post("/department", jsonParser, function (req, res) {
   db.execute(
     "INSERT INTO department (dep_name) VALUES (?)",
-    [
-      req.body.dep_name,
-
-    ],
+    [req.body.dep_name],
     function (err, results, fields) {
       if (err) {
         res.json({ status: "error", message: err });
@@ -165,7 +190,6 @@ app.post("/department", jsonParser, function (req, res) {
     }
   );
 });
-
 
 //UPDATE DEPARTMENT DATA FORM DB
 app.put("/department", jsonParser, function (req, res) {
@@ -184,13 +208,17 @@ app.put("/department", jsonParser, function (req, res) {
 
 //DELETE DEPARTMENT DATA FORM DB
 app.delete("/department/:dep_id", jsonParser, function (req, res) {
-  db.execute("DELETE FROM department WHERE dep_id = ?", [req.params.dep_id], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
+  db.execute(
+    "DELETE FROM department WHERE dep_id = ?",
+    [req.params.dep_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
     }
-  });
+  );
 });
 
 //ADD ACTIVITY
@@ -204,7 +232,6 @@ app.post("/activity", jsonParser, function (req, res) {
       req.body.act_time,
       req.body.act_place,
       req.body.act_desc,
-  
     ],
     function (err, results, fields) {
       if (err) {
@@ -218,35 +245,48 @@ app.post("/activity", jsonParser, function (req, res) {
 
 //ADD EMPLOYEES
 app.post("/employees", jsonParser, function (req, res) {
-  bcrypt.hash(req.body.emp_password, saltRounds, function (err, hash){
-  db.execute(
-    "INSERT INTO employees (emp_firstname, emp_surname, emp_address, emp_tel, emp_email, emp_username, emp_password, dep_id, role_id, emp_card_id, emp_dob, emp_images, position_id, create_at, update_at, record_status, emp_gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW(), NOW(), '1', ?)",
-    [
-      req.body.emp_firstname,
-      req.body.emp_surname,
-      req.body.emp_address,
-      req.body.emp_tel,
-      req.body.emp_email,
-      req.body.emp_username,
-      hash,
-      req.body.dep_id ,
-      req.body.role_id ,
-      req.body.emp_card_id ,
-      req.body.emp_dob ,
-      req.body.position_id ,
-      req.body.emp_gender ,
-
-  
-    ],
-    function (err, results, fields) {
-      if (err) {
-        res.json({ status: "error", message: err });
-        return;
+  bcrypt.hash(req.body.emp_password, saltRounds, function (err, hash) {
+    db.execute(
+      "INSERT INTO employees (emp_firstname, emp_surname, emp_address, emp_tel, emp_email, emp_username, emp_password, dep_id, role_id, emp_card_id, emp_dob, emp_images, position_id, create_at, update_at, record_status, emp_gender) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, NOW(), NOW(), '1', ?)",
+      [
+        req.body.emp_firstname,
+        req.body.emp_surname,
+        req.body.emp_address,
+        req.body.emp_tel,
+        req.body.emp_email,
+        req.body.emp_username,
+        hash,
+        req.body.dep_id,
+        req.body.role_id,
+        req.body.emp_card_id,
+        req.body.emp_dob,
+        req.body.position_id,
+        req.body.emp_gender,
+      ],
+      function (err, results, fields) {
+        if (err) {
+          res.json({ status: "error", message: err });
+          return;
+        }
+        res.json({ status: "ok" });
       }
-      res.json({ status: "ok" });
+    );
+  });
+});
+
+//DELETE DEPARTMENT DATA FORM DB
+app.delete("/employees/:emp_id", jsonParser, function (req, res) {
+  db.execute(
+    "DELETE FROM employees WHERE emp_id = ?",
+    [req.params.emp_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
     }
   );
-});
 });
 
 //GET OT_ASSIGNMENT DATA FORM DB
@@ -262,13 +302,17 @@ app.get("/otassignment", jsonParser, function (req, res) {
 
 //GET OT BY ID
 app.get("/otassignment/:ot_id", jsonParser, function (req, res) {
-  db.execute("SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.dep_id = department.dep_id WHERE ot_assignment.ot_id = ?", [req.params.ot_id], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
+  db.execute(
+    "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.dep_id = department.dep_id WHERE ot_assignment.ot_id = ?",
+    [req.params.ot_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
     }
-  });
+  );
 });
 
 //ADD OT_ASSIGNMENT
@@ -281,9 +325,8 @@ app.post("/otassignment", jsonParser, function (req, res) {
       req.body.dep_id,
       req.body.ot_desc,
       req.body.ot_starttime,
-      req.body.ot_finishtime ,
-      req.body.ot_apply ,
-
+      req.body.ot_finishtime,
+      req.body.ot_apply,
     ],
     function (err, results, fields) {
       if (err) {
@@ -295,18 +338,18 @@ app.post("/otassignment", jsonParser, function (req, res) {
   );
 });
 
-
 //SELECT DATA IN OT_ASSIGNMENT
 app.get("/otassignview", jsonParser, function (req, res) {
   db.execute(
-  "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.ot_id = department.dep_id"
-  , (err, result) => {
-  if (err) {
-    console.log(err);
-  } else {
-    res.send(result);
-  }
-});
+    "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.ot_id = department.dep_id",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
 });
 
 //GET ROLE DATA FORM DB
@@ -324,10 +367,7 @@ app.get("/role", jsonParser, function (req, res) {
 app.post("/role", jsonParser, function (req, res) {
   db.execute(
     "INSERT INTO role (role_name) VALUES (?)",
-    [
-      req.body.role_name,
-
-    ],
+    [req.body.role_name],
     function (err, results, fields) {
       if (err) {
         res.json({ status: "error", message: err });
@@ -353,11 +393,7 @@ app.get("/positions", jsonParser, function (req, res) {
 app.post("/positions", jsonParser, function (req, res) {
   db.execute(
     "INSERT INTO positions (position_name, dep_id, create_at, update_at ) VALUES (?, ?, NOW(), NOW())",
-    [
-      req.body.position_name,
-      req.body.dep_id, 
-
-    ],
+    [req.body.position_name, req.body.dep_id],
     function (err, results, fields) {
       if (err) {
         res.json({ status: "error", message: err });
@@ -368,6 +404,43 @@ app.post("/positions", jsonParser, function (req, res) {
   );
 });
 
+//-----------------------------test------------------------------
+app.get("/logintest", (req, res) => {
+  if (req.session.user) {
+    res.send({ loggedIn: true, user: req.session.user });
+  } else {
+    res.send({ loggedIn: false });
+  }
+});
+
+app.post("/logintest", (req, res) => {
+  const emp_username = req.body.emp_username;
+  const emp_password = req.body.emp_password;
+
+  db.query(
+    "SELECT * FROM employees WHERE emp_username = ?",
+    emp_username,
+    (err, result) => {
+      if (err) {
+        res.send({ err: err });
+      }
+
+      if (result.length > 0) {
+        bcrypt.compare(emp_password, result[0].emp_password, (error, response) => {
+          if (response) {
+            req.session.user = result;
+            console.log(req.session.user);
+            res.send(result);
+          } else {
+            res.send({ message: "Wrong username/password combination!" });
+          }
+        });
+      } else {
+        res.send({ message: "User doesn't exist" });
+      }
+    }
+  );
+});
 
 app.listen(3333, () => {
   console.log("running server port 3333");
