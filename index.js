@@ -135,7 +135,7 @@ app.post("/login", jsonParser, function (req, res, next) {
 //   );
 // });
 
-//--------------------------DEPARTMENT API------------------------------
+//--------------------------DEPARTMENT API--------------------------
 
 //GET DEPARTMENT DATA FORM DB
 app.get("/department", jsonParser, function (req, res) {
