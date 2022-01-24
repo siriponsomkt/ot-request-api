@@ -56,13 +56,17 @@ app.get("/employee", jsonParser, function (req, res) {
 });
 
 app.get("/employee/:emp_id", jsonParser, function (req, res) {
-  db.execute("SELECT * FROM employees WHERE emp_id = ?",[req.params.emp_id], (err, result) => {
-    if (err) {
-      console.log(err);
-    } else {
-      res.send(result);
+  db.execute(
+    "SELECT * FROM employees WHERE emp_id = ?",
+    [req.params.emp_id],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
     }
-  });
+  );
 });
 
 //Add Employees (Register)
@@ -93,8 +97,8 @@ app.post("/register", jsonParser, function (req, res) {
 });
 
 //LOGIN
-app.get("/login", jsonParser,(req, res) => {
-  if(req.session.user) {
+app.get("/login", jsonParser, (req, res) => {
+  if (req.session.user) {
     res.send({ loggedIn: true, user: req.session.user });
   } else {
     res.send({ loggedIn: false });
@@ -303,14 +307,15 @@ app.delete("/employees/:emp_id", jsonParser, function (req, res) {
 //SELECT DATA IN EMPLOYEES
 app.get("/employeesview", jsonParser, function (req, res) {
   db.execute(
-  "SELECT employees.emp_id,employees.emp_firstname,employees.emp_surname,department.dep_name,positions.position_name FROM employees LEFT JOIN department ON employees.dep_id = department.dep_id LEFT JOIN positions ON employees.position_id = positions.position_id"
-  , (err, result) => {
-  if (err) {
-    console.log(err);
-  } else {
-    res.send(result);
-  }
-});
+    "SELECT employees.emp_id,employees.emp_firstname,employees.emp_surname,department.dep_name,positions.position_name FROM employees LEFT JOIN department ON employees.dep_id = department.dep_id LEFT JOIN positions ON employees.position_id = positions.position_id",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
 });
 
 //GET OT_ASSIGNMENT DATA FORM DB
@@ -365,7 +370,6 @@ app.post("/otassignment", jsonParser, function (req, res) {
 //SELECT DATA IN OT_ASSIGNMENT
 app.get("/otassignview", jsonParser, function (req, res) {
   db.execute(
-<<<<<<< HEAD
     "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.ot_id = department.dep_id",
     (err, result) => {
       if (err) {
@@ -375,16 +379,6 @@ app.get("/otassignview", jsonParser, function (req, res) {
       }
     }
   );
-=======
-  "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.dep_id = department.dep_id"
-  , (err, result) => {
-  if (err) {
-    console.log(err);
-  } else {
-    res.send(result);
-  }
-});
->>>>>>> d5bd1de8721dc9834df2067cd0e13007ac80dece
 });
 
 //GET ROLE DATA FORM DB
@@ -439,7 +433,6 @@ app.post("/positions", jsonParser, function (req, res) {
   );
 });
 
-<<<<<<< HEAD
 //-----------------------------test------------------------------
 app.get("/logintest", (req, res) => {
   if (req.session.user) {
@@ -462,38 +455,40 @@ app.post("/logintest", (req, res) => {
       }
 
       if (result.length > 0) {
-        bcrypt.compare(emp_password, result[0].emp_password, (error, response) => {
-          if (response) {
-            req.session.user = result;
-            console.log(req.session.user);
-            res.send(result);
-          } else {
-            res.send({ message: "Wrong username/password combination!" });
+        bcrypt.compare(
+          emp_password,
+          result[0].emp_password,
+          (error, response) => {
+            if (response) {
+              req.session.user = result;
+              console.log(req.session.user);
+              res.send(result);
+            } else {
+              res.send({ message: "Wrong username/password combination!" });
+            }
           }
-        });
+        );
       } else {
         res.send({ message: "User doesn't exist" });
       }
     }
   );
 });
-=======
+
 //SELECT DATA IN POSITIONS
 app.get("/positionsview", jsonParser, function (req, res) {
   db.execute(
-  "SELECT positions.position_id,positions.position_name,department.dep_name FROM positions LEFT JOIN department ON positions.dep_id = department.dep_id"
-  , (err, result) => {
-  if (err) {
-    console.log(err);
-  } else {
-    res.send(result);
-  }
+    "SELECT positions.position_id,positions.position_name,department.dep_name FROM positions LEFT JOIN department ON positions.dep_id = department.dep_id",
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send(result);
+      }
+    }
+  );
 });
-});
-
->>>>>>> d5bd1de8721dc9834df2067cd0e13007ac80dece
 
 app.listen(3333, () => {
   console.log("running server port 3333");
 });
- 
