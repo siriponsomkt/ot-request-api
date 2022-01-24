@@ -216,6 +216,17 @@ app.post("/activity", jsonParser, function (req, res) {
   );
 });
 
+//GET ACTIVITY
+app.get("/activity", jsonParser, function (req, res) {
+  db.execute("SELECT * FROM activity", (err, result) => {
+    if (err) {
+      console.log(err);
+    } else {
+      res.send(result);
+    }
+  });
+});
+
 //ADD EMPLOYEES
 app.post("/employees", jsonParser, function (req, res) {
   bcrypt.hash(req.body.emp_password, saltRounds, function (err, hash){
@@ -249,6 +260,19 @@ app.post("/employees", jsonParser, function (req, res) {
 });
 });
 
+//SELECT DATA IN EMPLOYEES
+app.get("/employeesview", jsonParser, function (req, res) {
+  db.execute(
+  "SELECT employees.emp_id,employees.emp_firstname,employees.emp_surname,department.dep_name,positions.position_name FROM employees LEFT JOIN department ON employees.dep_id = department.dep_id LEFT JOIN positions ON employees.position_id = positions.position_id"
+  , (err, result) => {
+  if (err) {
+    console.log(err);
+  } else {
+    res.send(result);
+  }
+});
+});
+
 //GET OT_ASSIGNMENT DATA FORM DB
 app.get("/otassignment", jsonParser, function (req, res) {
   db.execute("SELECT * FROM ot_assignment", (err, result) => {
@@ -274,7 +298,7 @@ app.get("/otassignment/:ot_id", jsonParser, function (req, res) {
 //ADD OT_ASSIGNMENT
 app.post("/otassignment", jsonParser, function (req, res) {
   db.execute(
-    "INSERT INTO ot_assignment ( ot_name, ot_rate, dep_id, ot_desc, ot_starttime, ot_finishtime, ot_apply, ot_request, ot_stump, ot_status, create_at, update_at, record_status) VALUES ( ?, ?, ?, ?, ?, ?, ?, 0, 0, 1,  NOW(), NOW(), 1)",
+    "INSERT INTO ot_assignment ( ot_name, ot_rate, dep_id, ot_desc, ot_starttime, ot_finishtime, ot_apply, ot_request, ot_stump, ot_status, create_at, update_at, record_status) VALUES ( ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, NOW(), NOW(), 1)",
     [
       req.body.ot_name,
       req.body.ot_rate,
@@ -299,7 +323,7 @@ app.post("/otassignment", jsonParser, function (req, res) {
 //SELECT DATA IN OT_ASSIGNMENT
 app.get("/otassignview", jsonParser, function (req, res) {
   db.execute(
-  "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.ot_id = department.dep_id"
+  "SELECT ot_assignment.ot_id,ot_assignment.ot_name,department.dep_name,ot_assignment.ot_desc,ot_assignment.ot_starttime,ot_assignment.ot_finishtime,ot_assignment.ot_apply,ot_assignment.ot_request,ot_assignment.ot_stump,ot_assignment.ot_status,ot_assignment.ot_rate,TIMEDIFF(ot_assignment.ot_finishtime,ot_assignment.ot_starttime) AS summary FROM ot_assignment LEFT JOIN department ON ot_assignment.dep_id = department.dep_id"
   , (err, result) => {
   if (err) {
     console.log(err);
@@ -368,7 +392,21 @@ app.post("/positions", jsonParser, function (req, res) {
   );
 });
 
+//SELECT DATA IN POSITIONS
+app.get("/positionsview", jsonParser, function (req, res) {
+  db.execute(
+  "SELECT positions.position_id,positions.position_name,department.dep_name FROM positions LEFT JOIN department ON positions.dep_id = department.dep_id"
+  , (err, result) => {
+  if (err) {
+    console.log(err);
+  } else {
+    res.send(result);
+  }
+});
+});
+
 
 app.listen(3333, () => {
   console.log("running server port 3333");
 });
+ 
